@@ -10,11 +10,9 @@
 
 # Compiled Dynamic libraries
 *.so
+*.so.*
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
 
 # Compiled Static libraries
 *.lai
@@ -26,3 +24,9 @@
 *.exe
 *.out
 *.app
+test_client
+himond
+
+# other
+.idea/
+*.iml
