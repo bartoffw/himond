@@ -33,7 +33,8 @@ int main(int argc, char *argv[])
     string ethInterface;
     int refreshSeconds;
     string ns = "";
-    try {
+    try
+    {
         TCLAP::CmdLine cmd("himond - linux system metrics collector for statsd", ' ', "0.1");
         TCLAP::ValueArg<string> hostnameArg("", "hostname", "Hostname", false, getHostname(), "string");
         TCLAP::ValueArg<string> prefixArg("", "prefix", "Prefix name for all metrics (default: himond)", false, "himond", "string");
@@ -61,8 +62,9 @@ int main(int argc, char *argv[])
         statsdPort = portArg.getValue();
         ethInterface = interfaceArg.getValue();
         refreshSeconds = refreshSecondsArg.getValue();
-    } catch (TCLAP::ArgException &e)  // catch any exceptions
-	  {
+    }
+    catch (TCLAP::ArgException &e)  // catch any exceptions
+    {
         printf("error: %s for arg %s\n", e.error().c_str(), e.argId().c_str());
         exit(1);
     }
