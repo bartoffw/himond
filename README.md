@@ -67,11 +67,44 @@ You can also customize ethernet interface which will be monitored (default `eth0
 statistics refresh rate in seconds.
 
 ```
-Usage:   ./himond <statsd_host> <statsd_port> [<eth_interface>] [<refresh_rate_seconds>]
-  where: eth_interface        - default: eth0
-         refresh_rate_seconds - default: 1
+$ ./himond -h
 
-Example: ./himond 127.0.0.1 8125
+USAGE:
+
+   ./himond  [--prefix <string>] [--hostname <string>] -s <string> [-p
+             <int>] [-i <string>] [-r <int>] [--] [--version] [-h]
+
+
+Where:
+
+   --prefix <string>
+     Prefix (default: himond)
+
+   --hostname <string>
+     Hostname
+
+   -s <string>,  --server <string>
+     (required)  StatsD address
+
+   -p <int>,  --port <int>
+     StatsD port (default: 8125)
+
+   -i <string>,  --interface <string>
+     Network interface (default: eth0)
+
+   -r <int>,  --refresh <int>
+     Refresh seconds rate (default: 1)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   himond - linux system metrics collector for statsd
 ```
 
 ## Building
