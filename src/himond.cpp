@@ -4,9 +4,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fstream>
+#include <tclap/CmdLine.h>
 #include "lib/system_monitor.h"
 #include "lib/statsd_client.h"
-
 
 static int running = 1;
 
@@ -28,24 +28,43 @@ string getHostname() {
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3) {
-        printf( "Usage:   %s <statsd_host> <statsd_port> [<eth_interface>] [<refresh_rate_seconds>]\n"
-                "  where: eth_interface        - default: eth0\n"
-                "         refresh_rate_seconds - default: 1\n\n"
-                "Example: %s 127.0.0.1 8125\n",
-                argv[0], argv[0]);
-        exit(1);
-    }
+    string statsdHost;
+    int statsdPort;
+    string ethInterface;
+    int refreshSeconds;
+    string ns = "";
+    try {
+        TCLAP::CmdLine cmd("himond - linux system metrics collector for statsd", ' ', "0.1");
+        TCLAP::ValueArg<string> hostnameArg("", "hostname", "Hostname", false, getHostname(), "string");
+        TCLAP::ValueArg<string> prefixArg("", "prefix", "Prefix name for all metrics (default: himond)", false, "himond", "string");
+        TCLAP::ValueArg<string> serverArg("s", "server", "StatsD address", true, "", "string");
+        TCLAP::ValueArg<int> portArg("p", "port", "StatsD port (default: 8125)", false, 8125, "int");
+        TCLAP::ValueArg<string> interfaceArg("i", "interface", "Network interface (default: eth0)", false, "eth0", "string");
+        TCLAP::ValueArg<int> refreshSecondsArg("r", "refresh", "Refresh seconds rate (default: 1)", false, 1, "int");
 
-    string statsdHost = argv[1];
-    int statsdPort = atoi(argv[2]);
-    string ethInterface = "eth0";
-    int refreshSeconds = 1;
-    if (argc > 3) {
-        ethInterface = argv[3];
-        if (argc == 5) {
-            refreshSeconds = atoi(argv[4]);
-        }
+        cmd.add(refreshSecondsArg);
+        cmd.add(interfaceArg);
+        cmd.add(portArg);
+        cmd.add(serverArg);
+        cmd.add(hostnameArg);
+        cmd.add(prefixArg);
+
+        cmd.parse(argc, argv);
+
+        string prefix = prefixArg.getValue();
+        if (prefix.size() > 0)
+            ns = prefix + "." + hostnameArg.getValue() + ".";
+        else
+            ns = hostnameArg.getValue() + ".";
+
+        statsdHost = serverArg.getValue();
+        statsdPort = portArg.getValue();
+        ethInterface = interfaceArg.getValue();
+        refreshSeconds = refreshSecondsArg.getValue();
+    } catch (TCLAP::ArgException &e)  // catch any exceptions
+	  {
+        printf("error: %s for arg %s\n", e.error().c_str(), e.argId().c_str());
+        exit(1);
     }
 
     signal(SIGHUP, SIG_IGN);
@@ -53,7 +72,6 @@ int main(int argc, char *argv[])
     signal(SIGCHLD, SIG_IGN); /* will save one syscall per sleep */
     signal(SIGTERM, sigterm);
 
-    string ns = string("himond.") + getHostname().c_str() + ".";
     statsd::StatsdClient client(statsdHost, statsdPort, ns);
     SystemMonitor *sysmon = new SystemMonitor(true, true, true, ethInterface, refreshSeconds);
 
@@ -100,7 +118,7 @@ int main(int argc, char *argv[])
         cpuCount = sysmon->getProcessorCount();
         cpuUsage = sysmon->getProcessorUsage();
 
-        if (refreshSeconds >= secondsPassed) {
+        if (secondsPassed >= refreshSeconds) {
             // send the stats
             client.count("system.uptime", uptime);
 
